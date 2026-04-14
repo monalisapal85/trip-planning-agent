@@ -1,0 +1,25 @@
+# Environment variables — never commit these
+.env
+*.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.Python
+
+# GCP credentials
+application_default_credentials.json
+*credentials*.json
+service-account*.json
+
+# Firebase
+.firebase/
+firebase-debug.log
+
+# Mac
+.DS_Store
+
+# Virtual environments
+venv/
+env/

@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trip Planner Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0F0F0F;
+    --surface:  #1A1A1A;
+    --surface2: #222222;
+    --border:   #2E2E2E;
+    --accent:   #C8A96E;
+    --accent2:  #7EC8A9;
+    --text:     #F0EDE8;
+    --muted:    #888480;
+    --danger:   #C87E7E;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+  }
+
+  .logo span { color: var(--text); font-weight: 400; }
+
+  .session-pill {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  /* ── Main layout ── */
+  .main {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── Chat panel ── */
+  .chat-panel {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .panel-title {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .msg {
+    max-width: 88%;
+    padding: 11px 15px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.6;
+    animation: msgIn 0.2s ease;
+  }
+
+  @keyframes msgIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg-user {
+    align-self: flex-end;
+    background: var(--accent);
+    color: #1A1408;
+    border-bottom-right-radius: 4px;
+    font-weight: 500;
+  }
+
+  .msg-agent {
+    align-self: flex-start;
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+  }
+
+  .msg-thinking {
+    align-self: flex-start;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+    color: var(--muted);
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dots span {
+    display: inline-block;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--muted);
+    animation: dot 1.2s infinite;
+  }
+  .dots span:nth-child(2) { animation-delay: .2s; }
+  .dots span:nth-child(3) { animation-delay: .4s; }
+  @keyframes dot { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
+
+  .input-row {
+    display: flex;
+    gap: 8px;
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  #user-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  #user-input:focus { border-color: var(--accent); }
+  #user-input::placeholder { color: var(--muted); }
+
+  #send-btn {
+    background: var(--accent);
+    color: #1A1408;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  #send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  #send-btn:hover:not(:disabled) { opacity: 0.85; }
+
+  /* ── Dashboard panel ── */
+  .dash-panel {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .dash-inner {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-height: 100%;
+  }
+
+  /* Empty state */
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .empty-icon {
+    font-size: 48px;
+    opacity: 0.3;
+  }
+
+  .empty-state p { font-size: 13px; line-height: 1.6; max-width: 260px; }
+
+  /* Trip header card */
+  .trip-header {
+    background: linear-gradient(135deg, #1E1A12 0%, #1A1E1C 100%);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .trip-header::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.05;
+  }
+
+  .trip-dest {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .trip-meta { font-size: 13px; color: var(--muted); }
+
+  /* Section cards */
+  .section-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .section-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-flight   { background: #7EA8C8; }
+  .dot-hotel    { background: var(--accent2); }
+  .dot-weather  { background: #C8A97E; }
+  .dot-budget   { background: #A87EC8; }
+
+  /* Flight rows */
+  .flight-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    transition: background 0.12s;
+  }
+
+  .flight-row:last-child { border: none; }
+  .flight-row:hover { background: var(--surface2); }
+  .flight-row.best { border-left: 3px solid var(--accent); }
+
+  .flight-airline { font-weight: 500; color: var(--text); min-width: 80px; }
+  .flight-route   { color: var(--muted); font-size: 12px; flex: 1; }
+  .flight-dur     { color: var(--muted); font-size: 12px; min-width: 60px; }
+  .flight-price   { font-weight: 500; color: var(--accent); font-family: 'DM Mono', monospace; }
+  .best-badge     { font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 6px; background: #2A2110; color: var(--accent); border: 1px solid #3A3018; }
+
+  /* Hotel rows */
+  .hotel-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    transition: background 0.12s;
+  }
+
+  .hotel-row:last-child { border: none; }
+  .hotel-row:hover { background: var(--surface2); }
+  .hotel-row.best { border-left: 3px solid var(--accent2); }
+
+  .hotel-name   { font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .hotel-stars  { font-size: 11px; color: var(--muted); }
+  .hotel-rating { font-size: 12px; color: var(--muted); }
+  .hotel-price  { font-weight: 500; color: var(--accent2); font-family: 'DM Mono', monospace; margin-left: auto; white-space: nowrap; }
+
+  /* Weather row */
+  .weather-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+
+  .weather-cell {
+    padding: 14px 18px;
+    border-right: 1px solid var(--border);
+    font-size: 12px;
+  }
+
+  .weather-cell:last-child { border: none; }
+  .weather-label { color: var(--muted); margin-bottom: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+  .weather-val   { font-size: 16px; font-weight: 500; color: var(--text); }
+
+  /* Budget bar */
+  .budget-row {
+    padding: 10px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .budget-row:last-child { border: none; }
+  .budget-labels { display: flex; justify-content: space-between; font-size: 12px; }
+  .budget-label  { color: var(--muted); }
+  .budget-amount { color: var(--text); font-family: 'DM Mono', monospace; }
+  .budget-track  { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .budget-fill   { height: 100%; border-radius: 3px; transition: width .6s ease; }
+  .budget-total  { padding: 12px 18px; font-size: 13px; font-weight: 500; color: var(--accent); display: flex; justify-content: space-between; border-top: 1px solid var(--border); }
+
+  /* Checklist */
+  .checklist { list-style: none; }
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+
+  .check-item:last-child { border: none; }
+  .check-item:hover { background: var(--surface2); }
+  .check-item.done { color: var(--muted); text-decoration: line-through; }
+
+  .checkbox {
+    width: 16px; height: 16px;
+    border-radius: 4px;
+    border: 1.5px solid var(--border);
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+
+  .checkbox.checked { background: var(--accent2); border-color: var(--accent2); }
+  .check-icon { width: 9px; height: 9px; stroke: #0F1A15; stroke-width: 2.5; fill: none; display: none; }
+  .checkbox.checked .check-icon { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Trip<span>Agent</span></div>
+  <div class="session-pill" id="session-display">No active session</div>
+</header>
+
+<div class="main">
+
+  <!-- Chat panel -->
+  <div class="chat-panel">
+    <div class="panel-title">Chat with your agent</div>
+    <div id="messages">
+      <div class="msg msg-agent">Hi! Tell me about a trip you want to plan — destination, dates, and how many people. I'll search real flights, hotels and weather for you.</div>
+    </div>
+    <div class="input-row">
+      <input id="user-input" placeholder="e.g. 3 days in Tokyo Aug 10-13, 2 people from Atlanta" />
+      <button id="send-btn" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <!-- Dashboard panel -->
+  <div class="dash-panel">
+    <div class="dash-inner" id="dashboard">
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">✈</div>
+        <p>Your trip plan will appear here as you chat with the agent.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = "https://trip-planning-agent-evvvgwttwa-ue.a.run.app";
+let sessionId = null;
+
+// ── Messaging ──────────────────────────────────────────────────────────────────
+async function sendMessage() {
+  const input = document.getElementById('user-input');
+  const btn   = document.getElementById('send-btn');
+  const text  = input.value.trim();
+  if (!text) return;
+
+  addMsg(text, 'user');
+  input.value = '';
+  btn.disabled = true;
+
+  const thinking = addThinking();
+
+  try {
+    const body = { message: text };
+    if (sessionId) body.session_id = sessionId;
+
+    const res  = await fetch(`${API}/chat`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body),
+    });
+
+    const data = await res.json();
+    sessionId  = data.session_id;
+    document.getElementById('session-display').textContent = `Session: ${sessionId}`;
+
+    thinking.remove();
+    addMsg(data.answer, 'agent');
+    parseDashboard(data.answer);
+
+  } catch(e) {
+    thinking.remove();
+    addMsg('Something went wrong. Please try again.', 'agent');
+  }
+
+  btn.disabled = false;
+  input.focus();
+}
+
+function addMsg(text, type) {
+  const msgs = document.getElementById('messages');
+  const d    = document.createElement('div');
+  d.className = `msg msg-${type}`;
+  d.textContent = text;
+  msgs.appendChild(d);
+  msgs.scrollTop = msgs.scrollHeight;
+  return d;
+}
+
+function addThinking() {
+  const msgs = document.getElementById('messages');
+  const d    = document.createElement('div');
+  d.className = 'msg msg-thinking';
+  d.innerHTML = `Searching... <span class="dots"><span></span><span></span><span></span></span>`;
+  msgs.appendChild(d);
+  msgs.scrollTop = msgs.scrollHeight;
+  return d;
+}
+
+// ── Dashboard parser ───────────────────────────────────────────────────────────
+// Parses the agent's markdown response and populates the dashboard
+function parseDashboard(text) {
+  // Only update if the response looks like a trip plan
+  if (!text.includes('Flight') && !text.includes('Hotel') && !text.includes('flight') && !text.includes('hotel')) return;
+
+  const dash = document.getElementById('dashboard');
+  document.getElementById('empty-state')?.remove();
+  dash.innerHTML = '';
+
+  // ── Trip header ──
+  const dest    = extractDestination(text);
+  const dates   = extractDates(text);
+  const header  = document.createElement('div');
+  header.className = 'trip-header';
+  header.innerHTML = `
+    <div class="trip-dest">${dest}</div>
+    <div class="trip-meta">${dates}</div>`;
+  dash.appendChild(header);
+
+  // ── Flights ──
+  const flights = extractFlights(text);
+  if (flights.length) {
+    const card = makeSection('Flights', 'dot-flight');
+    flights.forEach((f, i) => {
+      const row = document.createElement('div');
+      row.className = `flight-row${i === 0 ? ' best' : ''}`;
+      row.innerHTML = `
+        <span class="flight-airline">${f.airline}</span>
+        <span class="flight-route">${f.route}</span>
+        <span class="flight-dur">${f.duration}</span>
+        <span class="flight-price">${f.price}</span>
+        ${i === 0 ? '<span class="best-badge">Best</span>' : ''}`;
+      card.body.appendChild(row);
+    });
+    dash.appendChild(card.el);
+  }
+
+  // ── Hotels ──
+  const hotels = extractHotels(text);
+  if (hotels.length) {
+    const card = makeSection('Hotels', 'dot-hotel');
+    hotels.forEach((h, i) => {
+      const row = document.createElement('div');
+      row.className = `hotel-row${i === 0 ? ' best' : ''}`;
+      row.innerHTML = `
+        <div style="flex:1">
+          <div class="hotel-name">${h.name}</div>
+          <div class="hotel-stars">${h.rating}</div>
+        </div>
+        <span class="hotel-price">${h.price}</span>`;
+      card.body.appendChild(row);
+    });
+    dash.appendChild(card.el);
+  }
+
+  // ── Weather ──
+  const weather = extractWeather(text);
+  if (weather) {
+    const card = makeSection('Weather', 'dot-weather');
+    const grid = document.createElement('div');
+    grid.className = 'weather-grid';
+    grid.innerHTML = `
+      <div class="weather-cell"><div class="weather-label">Temp</div><div class="weather-val">${weather.temp}</div></div>
+      <div class="weather-cell"><div class="weather-label">Feels like</div><div class="weather-val">${weather.feels}</div></div>
+      <div class="weather-cell"><div class="weather-label">Humidity</div><div class="weather-val">${weather.humidity}</div></div>
+      <div class="weather-cell"><div class="weather-label">Condition</div><div class="weather-val">${weather.condition}</div></div>`;
+    card.body.appendChild(grid);
+    dash.appendChild(card.el);
+  }
+
+  // ── Budget ──
+  const budget = extractBudget(text);
+  if (budget.total) {
+    const card = makeSection('Budget estimate', 'dot-budget');
+    const items = [
+      { label: 'Flights', amount: budget.flight, color: '#7EA8C8' },
+      { label: 'Hotels',  amount: budget.hotel,  color: '#7EC8A9' },
+    ].filter(i => i.amount);
+    const total = budget.total;
+    items.forEach(item => {
+      const pct = Math.min(100, Math.round((item.amount / total) * 100));
+      const row = document.createElement('div');
+      row.className = 'budget-row';
+      row.innerHTML = `
+        <div class="budget-labels">
+          <span class="budget-label">${item.label}</span>
+          <span class="budget-amount">$${item.amount.toLocaleString()}</span>
+        </div>
+        <div class="budget-track">
+          <div class="budget-fill" style="width:${pct}%;background:${item.color}"></div>
+        </div>`;
+      card.body.appendChild(row);
+    });
+    const tot = document.createElement('div');
+    tot.className = 'budget-total';
+    tot.innerHTML = `<span>Total estimate</span><span>$${total.toLocaleString()}</span>`;
+    card.body.appendChild(tot);
+    dash.appendChild(card.el);
+  }
+
+  // ── Checklist ──
+  const checklist = ['Check visa requirements', 'Book flights', 'Reserve hotels', 'Get travel insurance', 'Pack adaptor', 'Download offline maps'];
+  const clCard = makeSection('Pre-trip checklist', 'dot-weather');
+  const ul = document.createElement('ul');
+  ul.className = 'checklist';
+  checklist.forEach((item, i) => {
+    const li = document.createElement('li');
+    li.className = 'check-item';
+    li.innerHTML = `
+      <div class="checkbox" id="cb${i}">
+        <svg class="check-icon" viewBox="0 0 10 8"><polyline points="1,4 4,7 9,1"/></svg>
+      </div>
+      <span>${item}</span>`;
+    li.onclick = () => toggleCheck(i, li);
+    ul.appendChild(li);
+  });
+  clCard.body.appendChild(ul);
+  dash.appendChild(clCard.el);
+}
+
+function makeSection(title, dotClass) {
+  const el   = document.createElement('div');
+  el.className = 'section-card';
+  const head = document.createElement('div');
+  head.className = 'section-head';
+  head.innerHTML = `<span class="section-dot ${dotClass}"></span>${title}`;
+  el.appendChild(head);
+  const body = document.createElement('div');
+  el.appendChild(body);
+  return { el, body };
+}
+
+function toggleCheck(i, li) {
+  const cb = document.getElementById(`cb${i}`);
+  cb.classList.toggle('checked');
+  li.classList.toggle('done');
+}
+
+// ── Parsers ────────────────────────────────────────────────────────────────────
+function extractDestination(text) {
+  const m = text.match(/trip (?:plan )?(?:to|for) ([A-Z][a-zA-Z\s]+?)(?:\s*[\(\|,\n]|$)/);
+  if (m) return m[1].trim();
+  const m2 = text.match(/([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)\s+trip/);
+  return m2 ? m2[1] : 'Your Trip';
+}
+
+function extractDates(text) {
+  const m = text.match(/August\s+\d+[-–]\d+,?\s*\d{4}|Aug\s+\d+[-–]\d+,?\s*\d{4}|\d{4}-\d{2}-\d{2}/g);
+  return m ? m[0] : '';
+}
+
+function extractFlights(text) {
+  const flights = [];
+  const rows = text.match(/\|[^|]+\|[^|]+\|[^|]+\|[^|]+\|[^|]+\|[^|]+\|/g) || [];
+  rows.forEach(row => {
+    const cells = row.split('|').map(c => c.trim()).filter(Boolean);
+    if (cells.length >= 5 && cells.some(c => /\$/.test(c))) {
+      flights.push({
+        airline:  cells[0].replace(/\*\*/g, ''),
+        route:    cells[2] || '',
+        duration: cells[3] || '',
+        price:    cells.find(c => /\$/.test(c)) || '',
+      });
+    }
+  });
+  // fallback: look for inline mentions
+  if (!flights.length) {
+    const lines = text.split('\n');
+    lines.forEach(line => {
+      const m = line.match(/(American|United|Delta|WestJet|ANA|JAL|Korean)[^\$]*(\$[\d,]+)/i);
+      if (m) flights.push({ airline: m[1], route: '', duration: '', price: m[2] });
+    });
+  }
+  return flights.slice(0, 3);
+}
+
+function extractHotels(text) {
+  const hotels = [];
+  const rows = text.match(/\|[^|]+\|[^|]+\|[^|]+\|[^|]+\|/g) || [];
+  rows.forEach(row => {
+    const cells = row.split('|').map(c => c.trim()).filter(Boolean);
+    if (cells.length >= 3 && cells.some(c => /\$/.test(c)) && cells.some(c => /star|hotel/i.test(c))) {
+      hotels.push({
+        name:   cells[0].replace(/\*\*/g, ''),
+        rating: cells[1] || '',
+        price:  cells.find(c => /\$/.test(c)) || '',
+      });
+    }
+  });
+  // fallback
+  if (!hotels.length) {
+    const lines = text.split('\n');
+    lines.forEach(line => {
+      const m = line.match(/\*?\*?([A-Z][^\*\$\n]{5,40})\*?\*?[^\$]*(\$[\d]+\/night)/i);
+      if (m) hotels.push({ name: m[1].trim(), rating: '', price: m[2] });
+    });
+  }
+  return hotels.slice(0, 3);
+}
+
+function extractWeather(text) {
+  const temp  = text.match(/(\d+)°C/);
+  const hum   = text.match(/(\d+)%\s*humidity/i);
+  const cond  = text.match(/(?:Overcast|Clear|Cloudy|Sunny|Rainy|Humid|Partly)[^\n,]*/i);
+  if (!temp) return null;
+  return {
+    temp:      temp ? `${temp[1]}°C` : 'N/A',
+    feels:     text.match(/feels like (\d+°C)/i)?.[1] || 'N/A',
+    humidity:  hum ? `${hum[1]}%` : 'N/A',
+    condition: cond ? cond[0].trim() : 'N/A',
+  };
+}
+
+function extractBudget(text) {
+  const total  = text.match(/Total[^\$]*\$(\d[\d,]+)/i);
+  const flight = text.match(/Flight[^\$]*\$(\d[\d,]+)/i);
+  const hotel  = text.match(/Hotel[^\$]*\$(\d[\d,]+)/i);
+  return {
+    total:  total  ? parseInt(total[1].replace(/,/g,''))  : null,
+    flight: flight ? parseInt(flight[1].replace(/,/g,'')) : null,
+    hotel:  hotel  ? parseInt(hotel[1].replace(/,/g,''))  : null,
+  };
+}
+
+document.getElementById('user-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendMessage();
+});
+</script>
+</body>
+</html>

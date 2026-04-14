@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent to Production Roadmap</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F6F2;
+    --surface: #FFFFFF;
+    --border: #E4E2DA;
+    --text-primary: #1A1916;
+    --text-secondary: #6B6860;
+    --text-tertiary: #9E9C96;
+
+    --p1-bg: #EEEDFE;
+    --p1-mid: #534AB7;
+    --p1-light: #CECBF6;
+    --p1-dark: #3C3489;
+
+    --p2-bg: #E1F5EE;
+    --p2-mid: #1D9E75;
+    --p2-light: #9FE1CB;
+    --p2-dark: #085041;
+
+    --p3-bg: #E6F1FB;
+    --p3-mid: #378ADD;
+    --p3-light: #B5D4F4;
+    --p3-dark: #0C447C;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 48px 24px;
+  }
+
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .header {
+    margin-bottom: 20px;
+  }
+
+  .header h1 {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+  }
+
+  .header p {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .phase {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .phase:nth-child(2) { animation-delay: 0.05s; }
+  .phase:nth-child(3) { animation-delay: 0.10s; }
+  .phase:nth-child(4) { animation-delay: 0.15s; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+  }
+
+  .phase-num {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    flex-shrink: 0;
+    color: white;
+  }
+
+  .phase-title {
+    font-size: 15px;
+    font-weight: 600;
+    flex: 1;
+    letter-spacing: -0.01em;
+  }
+
+  .phase-tag {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-family: 'DM Mono', monospace;
+    flex-shrink: 0;
+  }
+
+  .phase-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0 18px;
+  }
+
+  .phase-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px 18px 18px;
+  }
+
+  .step {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 11px 14px;
+    border-radius: 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    transition: border-color 0.15s, transform 0.15s;
+    cursor: default;
+  }
+
+  .step:hover {
+    border-color: #C8C6BE;
+    transform: translateX(2px);
+  }
+
+  .step-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .step-content {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+  }
+
+  .step-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  .step-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+
+  .step-tool {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 6px;
+    align-self: flex-start;
+    margin-top: 4px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Phase 1 — Purple */
+  .p1 .phase-header { background: var(--p1-bg); }
+  .p1 .phase-num    { background: var(--p1-mid); }
+  .p1 .phase-title  { color: var(--p1-dark); }
+  .p1 .phase-tag    { background: var(--p1-light); color: var(--p1-dark); }
+  .p1 .step-icon    { background: var(--p1-bg); }
+  .p1 .step-tool    { background: var(--p1-bg); color: var(--p1-dark); }
+
+  /* Phase 2 — Teal */
+  .p2 .phase-header { background: var(--p2-bg); }
+  .p2 .phase-num    { background: var(--p2-mid); }
+  .p2 .phase-title  { color: var(--p2-dark); }
+  .p2 .phase-tag    { background: var(--p2-light); color: var(--p2-dark); }
+  .p2 .step-icon    { background: var(--p2-bg); }
+  .p2 .step-tool    { background: var(--p2-bg); color: var(--p2-dark); }
+
+  /* Phase 3 — Blue */
+  .p3 .phase-header { background: var(--p3-bg); }
+  .p3 .phase-num    { background: var(--p3-mid); }
+  .p3 .phase-title  { color: var(--p3-dark); }
+  .p3 .phase-tag    { background: var(--p3-light); color: var(--p3-dark); }
+  .p3 .step-icon    { background: var(--p3-bg); }
+  .p3 .step-tool    { background: var(--p3-bg); color: var(--p3-dark); }
+
+  .footer {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <h1>Agent to production roadmap</h1>
+    <p>Three phases to take your trip planning agent from prototype to live on GCP</p>
+  </div>
+
+  <!-- Phase 1 -->
+  <div class="phase p1">
+    <div class="phase-header">
+      <div class="phase-num">1</div>
+      <div class="phase-title">Make it real — add live data tools</div>
+      <div class="phase-tag">Week 1–2</div>
+    </div>
+    <div class="phase-divider"></div>
+    <div class="phase-body">
+      <div class="step">
+        <div class="step-icon">✈</div>
+        <div class="step-content">
+          <div class="step-name">Flight search tool</div>
+          <div class="step-desc">Connect to a flights API so the agent returns real prices and schedules, not suggestions.</div>
+          <div class="step-tool">Amadeus API (free tier) or Skyscanner API</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-icon">🏨</div>
+        <div class="step-content">
+          <div class="step-name">Hotel search tool</div>
+          <div class="step-desc">Let the agent pull real hotel options, prices, and availability for the trip dates.</div>
+          <div class="step-tool">Booking.com Affiliate API or Hotels.com API</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-icon">📍</div>
+        <div class="step-content">
+          <div class="step-name">Places / activities tool</div>
+          <div class="step-desc">Enrich the itinerary with real attraction hours, ratings, and locations.</div>
+          <div class="step-tool">Google Places API or Foursquare API</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-icon">🌤</div>
+        <div class="step-content">
+          <div class="step-name">Weather tool</div>
+          <div class="step-desc">Pull a forecast for the destination so the agent can suggest what to pack and when to plan outdoor activities.</div>
+          <div class="step-tool">OpenWeatherMap API (free)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 2 -->
+  <div class="phase p2">
+    <div class="phase-header">
+      <div class="phase-num">2</div>
+      <div class="phase-title">Make it persistent — backend + auth</div>
+      <div class="phase-tag">Week 3–4</div>
+    </div>
+    <div class="phase-divider"></div>
+    <div class="phase-body">
+      <div class="step">
+        <div class="step-icon">⚙</div>
+        <div class="step-content">
+          <div class="step-name">Python backend (FastAPI)</div>
+          <div class="step-desc">Move the agent logic from the browser into a Python server. This is where your LangChain agent loop lives.</div>
+          <div class="step-tool">FastAPI + LangChain / LangGraph</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-icon">💾</div>
+        <div class="step-content">
+          <div class="step-name">Save trips to a database</div>
+          <div class="step-desc">Store planned trips, conversation history, and checklists so they persist across sessions.</div>
+          <div class="step-tool">Firestore (GCP) or PostgreSQL (Cloud SQL)</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-icon">🔐</div>
+        <div class="step-content">
+          <div class="step-name">User login</div>
+          <div class="step-desc">Add authentication so each user sees only their own trips.</div>
+          <div class="step-tool">Firebase Auth or Google Identity Platform</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-icon">🌐</div>
+        <div class="step-content">
+          <div class="step-name">Move UI to a real frontend</div>
+          <div class="step-desc">Convert the prototype dashboard to a standalone React or Next.js app that calls your backend.</div>
+          <div class="step-tool">React + Next.js or Firebase Hosting</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 3 -->
+  <div class="phase p3">
+    <div class="phase-header">
+      <div class="phase-num">3</div>
+      <div class="phase-title">Make it live — deploy on GCP</div>
+      <div class="phase-tag">Week 5–6</div>
+    </div>
+    <div class="phase-divider"></div>
+    <div class="phase-body">
+      <div class="step">
+        <div class="step-icon">📦</div>
+        <div class="step-content">
+          <div class="step-name">Containerize the backend</div>
+          <div class="step-desc">Package your FastAPI app into a Docker image so it runs consistently anywhere.</div>
+          <div class="step-tool">Docker + Artifact Registry (GCP)</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-icon">☁</div>
+        <div class="step-content">
+          <div class="step-name">Deploy to Cloud Run</div>
+          <div class="step-desc">Push the container to Cloud Run — serverless, auto-scales, pay per request. Perfect for a personal agent.</div>
+          <div class="step-tool">GCP Cloud Run</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-icon">🔑</div>
+        <div class="step-content">
+          <div class="step-name">Secure your API keys</div>
+          <div class="step-desc">Move all API keys (Anthropic, Amadeus, etc.) into Secret Manager — never hardcode them.</div>
+          <div class="step-tool">GCP Secret Manager</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-icon">📊</div>
+        <div class="step-content">
+          <div class="step-name">Add logging and tracing</div>
+          <div class="step-desc">Track every agent decision so you can debug why it gave a bad recommendation.</div>
+          <div class="step-tool">Cloud Logging + LangSmith</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Trip Planning Agent · GCP Deployment Roadmap · 6-week plan</div>
+
+</div>
+</body>
+</html>
